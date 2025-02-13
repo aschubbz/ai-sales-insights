@@ -81,7 +81,7 @@ async function generateAISummary(analytics) {
           content: summaryContent.trim()
         }
       ],
-      max_tokens: 100
+      max_tokens: 1000
     };
 
     const response = await axios.post(
