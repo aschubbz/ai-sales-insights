@@ -3,11 +3,44 @@ const axios = require('axios');
 const { computeAnalytics } = require('../analytics');
 const router = express.Router();
 
+/**
+ * POST /sales/insights
+ * Expects a JSON payload with an array of sales records.
+ */
 router.post('/insights', async (req, res) => {
   try {
     const { sales } = req.body;
+
+    // 1) Validate array
+    if (!Array.isArray(sales) || sales.length === 0) {
+      return res.status(400).json({ error: 'Invalid or empty sales array.' });
+    }
+
+    // 2) Validate each record
+    for (const [index, record] of sales.entries()) {
+      if (!record || typeof record.category === 'undefined' || typeof record.amount === 'undefined') {
+        return res.status(400).json({
+          error: `Invalid record at index ${index}: missing 'category' or 'amount'`
+        });
+      }
+      if (typeof record.category !== 'string' || !record.category.trim()) {
+        return res.status(400).json({
+          error: `Invalid record at index ${index}: 'category' must be a non-empty string.`
+        });
+      }
+      if (typeof record.amount !== 'number' || record.amount < 0) {
+        return res.status(400).json({
+          error: `Invalid record at index ${index}: 'amount' must be a non-negative number.`
+        });
+      }
+    }
+
+    // 3) Compute analytics
     const analytics = computeAnalytics(sales);
+
+    // 4) Generate summary (mocked in tests)
     const summary = await generateAISummary(analytics);
+
     return res.json({ analytics, summary });
   } catch (error) {
     console.error('Error in /sales/insights route:', error);
@@ -15,6 +48,10 @@ router.post('/insights', async (req, res) => {
   }
 });
 
+/**
+ * generateAISummary: generates a summary for the given analytics data.
+ * This could integrate with an AI service like OpenAI or provide a fallback.
+ */
 async function generateAISummary(analytics) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
