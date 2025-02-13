@@ -7,7 +7,9 @@ describe('computeAnalytics (unit tests)', () => {
       totalSales: 0,
       averageSales: 0,
       bestCategory: null,
-      salesPerCategory: {}
+      bestState: null,
+      salesPerCategory: {},
+      salesPerState: {}
     });
   });
 
@@ -37,4 +39,44 @@ describe('computeAnalytics (unit tests)', () => {
     // By default, if there's a tie, we pick the first with the max.
     expect(result.bestCategory).toBe('CatA');
   });
+
+  describe('computeAnalytics with state (unit tests)', () => {
+    test('tracks sales by state correctly', () => {
+      const salesData = [
+        { category: 'Widgets', amount: 100, state: 'CA' },
+        { category: 'Gadgets', amount: 50, state: 'NY' },
+        { category: 'Widgets', amount: 150, state: 'NY' },
+        { category: 'Widgets', amount: 200 } // no state
+      ];
+  
+      // Totals:
+      //  - totalSales = 100 + 50 + 150 + 200 = 500
+      //  - averageSales = 500 / 4 = 125
+      //  - bestCategory = 'Widgets' (450 total vs. 50 for Gadgets)
+      //  - salesPerCategory = { Widgets: 450, Gadgets: 50 }
+      //
+      // State breakdown:
+      //  - CA: 100
+      //  - NY: 200 (50 + 150)
+      //  - (no state): 200 (not aggregated in salesPerState, we skip it)
+      //
+      // bestState = 'NY' (200 > 100)
+  
+      const result = computeAnalytics(salesData);
+  
+      expect(result.totalSales).toBe(500);
+      expect(result.averageSales).toBe(125);
+      expect(result.bestCategory).toBe('Widgets');
+      expect(result.salesPerCategory).toEqual({
+        Widgets: 450,
+        Gadgets: 50
+      });
+      expect(result.salesPerState).toEqual({
+        CA: 100,
+        NY: 200
+      });
+      expect(result.bestState).toBe('NY');
+    });
+  });
+  
 });

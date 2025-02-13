@@ -65,6 +65,8 @@ async function generateAISummary(analytics) {
         - Average Sales: ${analytics.averageSales}
         - Best Category: ${analytics.bestCategory}
         - Sales Per Category: ${JSON.stringify(analytics.salesPerCategory)}
+        - Best State: ${analytics.bestState}
+        - Sales Per State: ${JSON.stringify(analytics.salesPerState)}
 
         Provide a concise summary of these insights in a human-friendly tone.
       `;
